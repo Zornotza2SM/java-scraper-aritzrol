@@ -19,17 +19,17 @@ public class Scraper {
         
         // 1. Crear el StringBuilder para construir el contenido del CSV
         StringBuilder csvData = new StringBuilder();
-        csvData.append("Titulo;Precio_Euros\n"); // Cabecera del CSV
+        csvData.append("Nombre_Producto;Precio_Dólares\n"); // Cabecera del CSV
         
         try {
             // Carga el archivo HTML estático localmente
             File input = new File("index.html");
-            Document doc = Jsoup.parse(input, "UTF-8", ""); 
+            Document doc = Jsoup.connect("https://world.digimoncard.com/products/").get(); 
             
             System.out.println("Documento HTML cargado. Iniciando el scraping (Extracción de datos)...");
             
             // 2. Seleccionar todos los contenedores de producto
-            Elements productos = doc.select(".producto"); 
+            Elements productos = doc.select(".prodinfo"); 
             
             // ----------------------------------------------------
             // FASE 2: Preprocesamiento (Extracción y Limpieza)
@@ -39,10 +39,14 @@ public class Scraper {
             for (Element producto : productos) {
                 
                 // Tarea A: Extraer el título
-                String titulo = producto.select(".titulo-producto").text();
+                String titulo = producto.select(".prodname").text();
+
+                String tituloLimpio = titulo;
+
+                tituloLimpio = tituloLimpio.replace("DIGIMON CARD GAME ", "");
                 
                 // Tarea B: Extraer el precio como texto
-                String precioTexto = producto.select(".precio").text();
+                String precioTexto = producto.select(".maker").text();
                 
                 // Tarea C: Limpieza del Dato (EL ALUMNO COMPLETA ESTA LÓGICA)
                 String precioLimpio = precioTexto;
@@ -51,12 +55,12 @@ public class Scraper {
                 //  *** CÓDIGO A COMPLETAR POR EL ALUMNO (SOLUCIÓN DEL PROFESOR ABAJO) ***
                 //  1. Eliminar el símbolo de moneda (" €")
                 //  2. Reemplazar la coma decimal por un punto decimal (para ser compatible con CSV/Números)
-                precioLimpio = precioLimpio.replace(" €", "").replace(",", "."); 
+                precioLimpio = precioLimpio.replace("MSRP", "").replaceFirst(" ", "").replace(" USD", ""); 
                 //  (Opcional: Filtrar precios obviamente erróneos si deseas añadir un reto de limpieza)
                 // ----------------------------------------------------------------------------------
                 
                 // 3. Estructurar el dato: Añadir al StringBuilder en formato CSV
-                csvData.append(titulo).append(";").append(precioLimpio).append("\n");
+                csvData.append(tituloLimpio).append(";").append(precioLimpio).append("$\n");
             }
             
             // ----------------------------------------------------
